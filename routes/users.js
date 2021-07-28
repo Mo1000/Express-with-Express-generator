@@ -1,6 +1,9 @@
 var express = require('express');
 const bodyParser = require('body-parser');
 var  User = require('../models/user');
+var passport =require('passport');
+
+
 var router = express.Router();
 router.use(bodyParser.json());
 
@@ -10,45 +13,46 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/signup', (req, res, next) => {
-    User.findOne({username: req.body.username})
-        .then((user) => {
-            if(user != null) {
-                var err = new Error('User ' + req.body.username + ' already exists!');
-                err.status = 403;
-                next(err);
+    /**le Passport locol mongoose nous fournit de nouvelle methode pour
+     * l'authentification*/
+    /**register prend en parametre en 1er un nouvelle utillsateur ,le mdp,et la fonction de
+     rappelle */
+    User.register(new User({username: req.body.username}),req.body.password,
+        (err,user) => {
+            if(err != null) {
+                res.statusCode = 500;
+                res.setHeader('Content-Type', 'application/json');
+                res.json({err:err});
             }
             else {
-                return User.create({
-                    username: req.body.username,
-                    password: req.body.password});
+                /**SI il n'y a pas d'erreur utilsé la strategie du passport  */
+           passport.authenticate('local')(req,res,()=>{
+               res.statusCode = 200;
+               res.setHeader('Content-Type', 'application/json');
+               res.json({success:true ,status: 'Registration Successful!'});
+           });
             }
-        })
-        .then((user) => {
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.json({status: 'Registration Successful!', user: user});
-        }, (err) => next(err))
-        .catch((err) => next(err));
+        });
 });
 
 
-router.post('/login', (req, res, next) => {
-    /**Utilisation des cookies signées */
+router.post('/login',passport.authenticate('local'),
+    (req, res) => {
+    /**Utilisation des cookies signées authentification express session  */
     //si l'utilisateur n'est pas encore authentifier ou connecté
-    if(!req.session.user) {
+   /* if(!req.session.user) {
         var authHeader = req.headers.authorization;
 
         if (!authHeader) {
             var err = new Error('You are not authenticated!');
-            /**authHeader contient la req du client soit le nom d'utilisateur et le mdp
-             codé en base 64 */
-            /**envoyer en reponse que c'est une Authentication*/
+            //authHeader contient la req du client soit le nom d'utilisateur et le mdp codé en base 64
+            //envoyer en reponse que c'est une Authentication*
             res.setHeader('WWW-Authenticate', 'Basic');
             err.status = 401;
             return next(err);
-        }
+        }*/
 
-        var auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+        //var auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
         /**Buffer un tampon qui divise la valeur en suivant l'encodage qu'on donne
          * split pour diviser et l'espace dans le split comme parti de separation
          *le premier element de cette separation est l'element codé en base 64
@@ -56,7 +60,7 @@ router.post('/login', (req, res, next) => {
          * toString() contiendra le nom d'utilsateur et le mdp  separer par : au cause de split(':')
          * auth est un tableau dont le premier element est le non d'utilsateur
          * et le second le password */
-        var username = auth[0];
+     /*   var username = auth[0];
         var password = auth[1];
 
         User.findOne({username: username})
@@ -85,7 +89,14 @@ router.post('/login', (req, res, next) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/plain');
         res.end('You are already authenticated!');
-    }
+    }*/
+
+/**Utilsation du passport
+ si l'authentification ne reussi pas alors passport.authenticate('local') mis en parametre
+ nous signale l'erreur  */
+res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json({success:true ,status: ' You are Successfully logged in!'});
 });
 
 router.get('/logout', (req, res) => {

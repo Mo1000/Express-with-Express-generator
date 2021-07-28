@@ -3,14 +3,17 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var session = require('express-session');
+var FileStore = require('session-file-store')(session);
+var passport =require('passport');
+var authenticate = require('./authenticate')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var dishRouter=require('./routes/dishRouter');
 var promoRouter=require('./routes/promotionRouter');
 var leaderRouter=require('./routes/leaderRouter');
-var session = require('express-session');
-var FileStore = require('session-file-store')(session);
+
 const mongoose = require('mongoose');
 
 
@@ -50,10 +53,14 @@ app.use(session({
     /**mettre  la session de chaque utilsateur dans un magasin
      de fichier */
 }));
+
+
 /** donner l'acces a l'application node
  * node lit middleware par middleware si ce middleware n'est pas valide
  il pourra pas passer au suivant donc il faut bien respecter l'autre des middleware  */
 
+app.use(passport.initialize());
+app.use(passport.session());/**pour utiliser le passport*/
 /***********************/
 /**Car on fait l'authentifiaction avant de passer au reste*/
 app.use('/', indexRouter);
@@ -64,25 +71,26 @@ app.use('/users', usersRouter);
 /*******************/
 function auth (req, res, next) {
 //console.log(req.signedCookies.user);
-    console.log(req.session);
+    //console.log(req.session);
     /**Utilisation des cookies signées */
 
-    if(!req.session.user) {
+    if(!req.user/**!req.session.user*/) {
         var err = new Error('You are not authenticated!');
         err.status = 403;
         return next(err);
     }
     else {
+        next();//a cause du passport qui prends en charge la session avec la serialisation
         /** 'authenticated' est la reponse dans req.session.user dans users.js
          * si l'authentification a reussi  */
-        if (req.session.user === 'authenticated') {
-            next();
+       /* if (req.session.user === 'authenticated') {
+
         }
         else {
             var err = new Error('You are not authenticated!');
             err.status = 403;
             return next(err);
-        }
+        }*/
     }
 }
 
