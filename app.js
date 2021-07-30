@@ -6,7 +6,8 @@ var logger = require('morgan');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var passport =require('passport');
-var authenticate = require('./authenticate')
+var authenticate = require('./authenticate');
+var config = require('./config');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -19,7 +20,7 @@ const mongoose = require('mongoose');
 
 
 /**Connection a la base de donnée */
-const url= 'mongodb://localhost:27017/conFusion';
+const url= config.mongoUrl;
 const  connect= mongoose.connect(url);
 
 connect
@@ -43,16 +44,16 @@ app.use(express.urlencoded({ extended: false }));
 /**Code secret pour reconnaitre les cookies*/
 
 /**La session prends des données  plus volumineux que les cookies et elle prends en compte
- les cookies*/
-app.use(session({
+ les cookies
+/*app.use(session({
     name: 'session-id',
     secret: '12345-67890-09876-54321',
     saveUninitialized: false,
     resave: false,
-    store: new FileStore()
+    store: new FileStore()//
     /**mettre  la session de chaque utilsateur dans un magasin
-     de fichier */
-}));
+     de fichier
+}));*/
 
 
 /** donner l'acces a l'application node
@@ -60,7 +61,7 @@ app.use(session({
  il pourra pas passer au suivant donc il faut bien respecter l'autre des middleware  */
 
 app.use(passport.initialize());
-app.use(passport.session());/**pour utiliser le passport*/
+//app.use(passport.session());/**pour utiliser le passport*/
 /***********************/
 /**Car on fait l'authentifiaction avant de passer au reste*/
 app.use('/', indexRouter);
@@ -69,12 +70,12 @@ app.use('/users', usersRouter);
  * pour avancer il doit s'authentifier */
 
 /*******************/
-function auth (req, res, next) {
+/**function auth (req, res, next) {
 //console.log(req.signedCookies.user);
     //console.log(req.session);
-    /**Utilisation des cookies signées */
+    /**Utilisation des cookies signées *
 
-    if(!req.user/**!req.session.user*/) {
+    if(!req.user/**!req.session.user*) {
         var err = new Error('You are not authenticated!');
         err.status = 403;
         return next(err);
@@ -82,7 +83,7 @@ function auth (req, res, next) {
     else {
         next();//a cause du passport qui prends en charge la session avec la serialisation
         /** 'authenticated' est la reponse dans req.session.user dans users.js
-         * si l'authentification a reussi  */
+         * si l'authentification a reussi  *
        /* if (req.session.user === 'authenticated') {
 
         }
@@ -90,11 +91,11 @@ function auth (req, res, next) {
             var err = new Error('You are not authenticated!');
             err.status = 403;
             return next(err);
-        }*/
+        }*
     }
 }
 
-app.use(auth);
+app.use(auth);*/
 app.use(express.static(path.join(__dirname, 'public')));
 
 /**Apres s'est authentifiés il peut avoir acces a ces routes*/

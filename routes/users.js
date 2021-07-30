@@ -2,6 +2,7 @@ var express = require('express');
 const bodyParser = require('body-parser');
 var  User = require('../models/user');
 var passport =require('passport');
+var  authenticate =require('../authenticate')
 
 
 var router = express.Router();
@@ -94,9 +95,11 @@ router.post('/login',passport.authenticate('local'),
 /**Utilsation du passport
  si l'authentification ne reussi pas alors passport.authenticate('local') mis en parametre
  nous signale l'erreur  */
+/**Creer un jeton =token a inclus dans l'en tete d'autorisation*/
+var token= authenticate.getToken({_id : req.user._id});// creer un jetons a parti de l'id
 res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json({success:true ,status: ' You are Successfully logged in!'});
+        res.json({success:true ,token : token,status: ' You are Successfully logged in!'});
 });
 
 router.get('/logout', (req, res) => {
