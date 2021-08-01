@@ -16,8 +16,9 @@ var commentSchema = new Schema({
         required: true
     },
     author:  {
-        type: String,
-        required: true
+        type: mongoose.Schema.Types.ObjectId/**Recoit une donnée
+         de type object id donc ce champ referencera un user*/,
+        ref:'User' /**Dit quel champ il reference */
     }
 }, {
     timestamps: true

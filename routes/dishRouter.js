@@ -15,6 +15,9 @@ dishRouter.use(bodyParser.json());
 dishRouter.route('/')
     .get((req,res,next) => {
         Dishes.find({})
+            .populate('comments.author')/**Dans le models de dishes nous avons dis au niveau des
+         commentaire pour les auteurs il referencera les utilisateur
+         .populate('comments.author') nous permet de garantie que le champ requis sera remplis*/
             .then((dishes) => {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
@@ -54,6 +57,7 @@ dishRouter.route('/:dishId')
     .get((req,res,next) => {
         /**req.params.dishId est l"id du plat*/
         Dishes.findById(req.params.dishId)
+            .populate('comments.author')
             .then((dish) => {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
@@ -93,6 +97,7 @@ dishRouter.route('/:dishId')
 dishRouter.route('/:dishId/comments')
     .get((req,res,next) => {
         Dishes.findById(req.params.dishId)
+            .populate('comments.author')
             .then((dish) => {
                 if (dish != null) {
                     res.statusCode = 200;
@@ -109,16 +114,27 @@ dishRouter.route('/:dishId/comments')
     })
 
     .post(authenticate.verifyUser,(req, res, next) => {
-        /**Dans req body il ya le corps du message */
+        /**Dans req body il ya le corps du message
+         * authenticate.verifyUser  charge les info de l'utilsateur dans
+         * req.user
+         * req.user._id; pour l'id*/
         Dishes.findById(req.params.dishId)
             .then((dish) => {
                 if (dish != null) {
+                    req.body.author=req.user._id;/**Le champs comments.author se remplis autamatique
+                     quand utilisateur se connecte avec son id  vu qu'on la deja authentifier
+                     au niveau de authenticate.verifyUser */
                     dish.comments.push(req.body);
                     dish.save()
                         .then((dish) => {
-                            res.statusCode = 200;
-                            res.setHeader('Content-Type', 'application/json');
-                            res.json(dish);
+                            Dishes.findById(dish._id)/**Chercher le plat pour remplir la partir
+                             comments.author avec mongoose population */
+                                .populate('comments.author')
+                                .then((dish)=>{
+                                    res.statusCode = 200;
+                                    res.setHeader('Content-Type', 'application/json');
+                                    res.json(dish);
+                                })
                         }, (err) => next(err));
                 }
                 else {
@@ -162,6 +178,7 @@ dishRouter.route('/:dishId/comments/:commentId')
     .get((req,res,next) => {
         /**req.params.dishId est l"id du plat*/
             Dishes.findById(req.params.dishId)
+                .populate('comments.author')
                 .then((dish) => {
                     if (dish != null && dish.comments.id(req.params.commentId) != null) {
                         res.statusCode = 200;
@@ -200,9 +217,13 @@ dishRouter.route('/:dishId/comments/:commentId')
                     }
                     dish.save()
                         .then((dish) => {
-                            res.statusCode = 200;
-                            res.setHeader('Content-Type', 'application/json');
-                            res.json(dish);
+                            Dishes.findById(dish._id)
+                                .populate('comments.author')
+                                .then((dish)=>{
+                                    res.statusCode = 200;
+                                    res.setHeader('Content-Type', 'application/json');
+                                    res.json(dish);
+                                })
                         }, (err) => next(err));
                 }
                 else if (dish == null) {
@@ -225,9 +246,13 @@ dishRouter.route('/:dishId/comments/:commentId')
                     dish.comments.id(req.params.commentId).remove();
                     dish.save()
                         .then((dish) => {
-                            res.statusCode = 200;
-                            res.setHeader('Content-Type', 'application/json');
-                            res.json(dish);
+                            Dishes.findById(dish._id)
+                                .populate('comments.author')
+                                .then((dish)=>{
+                                    res.statusCode = 200;
+                                    res.setHeader('Content-Type', 'application/json');
+                                    res.json(dish);
+                                })
                         }, (err) => next(err));
                 }
                 else if (dish == null) {
