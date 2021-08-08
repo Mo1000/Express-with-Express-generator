@@ -8,9 +8,22 @@ var  authenticate =require('../authenticate')
 var router = express.Router();
 router.use(bodyParser.json());
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+ /*GET users listing. */
+router.get('/',authenticate.verifyUser,function(req, res, next) {
+/**Seul ADMIN peut voir les utilisateurs**/
+    if (req.user.admin === true) {
+        User.find({})
+            .then((users)=>{
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.json(users);
+            },(err)=>next(err))
+            .catch((err)=>next(err));
+    } else {
+        err = new Error('You are not authorized to perform this operation!');
+        err.status = 403;
+        return next(err);
+    }
 });
 
 router.post('/signup', (req, res, next) => {
@@ -109,13 +122,13 @@ router.post('/login',passport.authenticate('local'),
  si l'authentification ne reussi pas alors passport.authenticate('local') mis en parametre
  nous signale l'erreur  */
 /**Creer un jeton =token a inclus dans l'en tete d'autorisation*/
-var token= authenticate.getToken({_id : req.user._id});// creer un jetons a parti de l'id
-res.statusCode = 200;
+var token = authenticate.getToken({_id: req.user._id});
+        res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json({success:true ,token : token,status: ' You are Successfully logged in!'});
-});
+        res.json({success: true, token: token, status: 'You are successfully logged in!'});
+    });
 
-router.get('/logout', (req, res) => {
+router.get('/logout', (req, res,next) => {
     if (req.session) {
         req.session.destroy();/**Pour detruire la session du client c'est information
          et les cookies niveau serveur mais pas niveau client  */

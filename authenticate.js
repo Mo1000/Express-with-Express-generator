@@ -3,11 +3,11 @@ var LocalStrategy = require('passport-local').Strategy;/**Pour la strategie
  a utiliser avec le passport */
 var User = require('./models/user');// Le schema user de mongoDB
 var JwtStrategy = require('passport-jwt').Strategy;
-var ExtractJwt= require('passport-jwt').ExtractJwt;
-var jwt= require('jsonwebtoken');
+var ExtractJwt = require('passport-jwt').ExtractJwt;
+var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
 
+var config = require('./config.js');
 
-var config=require('./config');
 
 exports.local =passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
@@ -28,10 +28,10 @@ exports.getToken = function(user) {
         {expiresIn: 3600});
 };
 /**Strategie basée sur le Json web token jwt*/
-var opts={};
-opts.jwtFromRequest =ExtractJwt.fromAuthHeaderAsBearerToken();/**Extrait le jeton de
+var opts = {};
+opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();/**Extrait le jeton de
  l'en tete authentification*/
-opts.secretOrKey=config.secretKey;
+opts.secretOrKey = config.secretKey;
 /**la JwtStrategyprends trois parametre options et une fonction avec la charge utile
  * et le fait
  * la charge utilse ou payload contient id */
@@ -53,3 +53,13 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,
 
 /**Verifier l'utilsateur avec la staregie JWT pas local*/
 exports.verifyUser = passport.authenticate('jwt', {session: false});
+
+exports.verifyAdmin=(req,res,next)=> {
+    if (req.user.admin === true) {
+        return next();
+    } else {
+        err = new Error('You are not authorized to perform this operation!');
+        err.status = 403;
+        return next(err);
+    }
+};

@@ -27,7 +27,7 @@ promotionRouter.route('/')
             .catch((err) => next(err));
     })
 
-    .post(authenticate.verifyUser,(req,res,next) =>{
+    .post(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         Promotions.create(req.body)
             .then((promo) => {
                 console.log('Promotion Created ', promo);
@@ -38,12 +38,12 @@ promotionRouter.route('/')
             .catch((err) => next(err));
     })
 
-    .put(authenticate.verifyUser,(req,res,next) =>{
+    .put(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         res.statusCode =403;
         res.end('Put operation not supported on / promotions ');
     })
 
-    .delete(authenticate.verifyUser,(req,res,next) =>{
+    .delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         Promotions.remove({})
             .then((resp) => {
                 res.statusCode = 200;
@@ -65,13 +65,13 @@ promotionRouter.route('/:promotionId')
             .catch((err) => next(err));
     })
 
-    .post(authenticate.verifyUser,(req,res,next) =>{
+    .post(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         res.statusCode =403;
         res.end('Post operation no supported on /promotion/' +
             req.params.promotionId);
     })
 
-    .put(authenticate.verifyUser,(req,res,next) =>{
+    .put(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         /**{ new: true } pour que la methode findByIdAndUpdate retourne la promotions sous
          forme de reponse json*/
         Promotions.findByIdAndUpdate(req.params.promotionId, {
@@ -85,7 +85,7 @@ promotionRouter.route('/:promotionId')
             .catch((err) => next(err));
     })
 
-    .delete(authenticate.verifyUser,(req,res,next) =>{
+    .delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         Promotions.findByIdAndRemove(req.params.promotionId)
             .then((resp) => {
                 res.statusCode = 200;
