@@ -14,6 +14,7 @@ var usersRouter = require('./routes/users');
 var dishRouter=require('./routes/dishRouter');
 var promoRouter=require('./routes/promotionRouter');
 var leaderRouter=require('./routes/leaderRouter');
+var uploadRouter=require('./routes/uploadRouter');
 
 const mongoose = require('mongoose');
 
@@ -113,10 +114,12 @@ app.use('/users', usersRouter);
 app.use(auth);*/
 app.use(express.static(path.join(__dirname, 'public')));
 
-/**Apres s'est authentifiés il peut avoir acces a ces routes*/
+/**Apres s'est authentifiés il peut avoir acces a ces routes
+ * le premier parametre ce sont les points de terminaison autrement dit les url*/
 app.use('/dishes',dishRouter);
 app.use('/promotions',promoRouter);
 app.use('/leaders',leaderRouter);
+app.use('/imageUpload',uploadRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
