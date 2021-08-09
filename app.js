@@ -33,6 +33,21 @@ connect
 
 var app = express();
 
+/** Secure traffic only
+ * si on laisse le port http 3000 activer c'est pour une redirection
+ * si la requete client est securisé ca veut dire req.secure== true
+ * la fonction app.all doit etre mise apres express pour filtrer toute les requetes*/
+app.all('*', (req, res, next) => {
+    if (req.secure) {
+        return next();
+    }
+    else {
+        /**hostname:localhost le meme que pour le server http
+         * url vu que app.get('secPort') alors c'est le port 3443
+         * si c'etait app.get('Port') alors ca le port 3000 voir dossier bin / www */
+        res.redirect(307, 'https://' + req.hostname + ':' + app.get('secPort') + req.url);
+    }
+});
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
