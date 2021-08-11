@@ -1,8 +1,10 @@
 const  express = require('express');
 const bodyParser = require('body-parser');
-const authenticate =require('../authenticate')
+const authenticate =require('../authenticate');
+const cors = require("./cors");
 const promotionRouter=express.Router();
 const Promotions = require('../models/promotion')
+
 
 promotionRouter.use(bodyParser.json());
 promotionRouter.route('/')
@@ -16,8 +18,15 @@ promotionRouter.route('/')
         res.setHeader('Content-Type','text/plain');
         next();
     })*/
-
-    .get((req,res,next) =>{
+    /**.options(cors.corsWithOptions,(req,res)=>{res.sendStatus(200)})
+     * Pour deja introduire le Cross Origin Ressource sharing (cors) et
+     definir quel address peut avoir acces a cette methode voir whiteListe
+     dans cors.js
+     */
+    .options(cors.corsWithOptions,(req,res)=>{
+        res.sendStatus(200)
+    })
+    .get(cors.cors,(req,res,next) =>{
         Promotions.find({})
             .then((promo) => {
                 res.statusCode = 200;
@@ -27,7 +36,7 @@ promotionRouter.route('/')
             .catch((err) => next(err));
     })
 
-    .post(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
+    .post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         Promotions.create(req.body)
             .then((promo) => {
                 console.log('Promotion Created ', promo);
@@ -38,12 +47,12 @@ promotionRouter.route('/')
             .catch((err) => next(err));
     })
 
-    .put(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
+    .put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         res.statusCode =403;
         res.end('Put operation not supported on / promotions ');
     })
 
-    .delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
+    .delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         Promotions.remove({})
             .then((resp) => {
                 res.statusCode = 200;
@@ -54,8 +63,12 @@ promotionRouter.route('/')
     });
 
 promotionRouter.route('/:promotionId')
+
+    .options(cors.corsWithOptions,(req,res)=>{
+        res.sendStatus(200)
+    })
     /**Concernant une promotion specifique*/
-    .get((req,res,next) =>{
+    .get(cors.cors,(req,res,next) =>{
         Promotions.findById(req.params.promotionId)
             .then((promo) => {
                 res.statusCode = 200;
@@ -65,13 +78,13 @@ promotionRouter.route('/:promotionId')
             .catch((err) => next(err));
     })
 
-    .post(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
+    .post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         res.statusCode =403;
         res.end('Post operation no supported on /promotion/' +
             req.params.promotionId);
     })
 
-    .put(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
+    .put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         /**{ new: true } pour que la methode findByIdAndUpdate retourne la promotions sous
          forme de reponse json*/
         Promotions.findByIdAndUpdate(req.params.promotionId, {
@@ -85,7 +98,7 @@ promotionRouter.route('/:promotionId')
             .catch((err) => next(err));
     })
 
-    .delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
+    .delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         Promotions.findByIdAndRemove(req.params.promotionId)
             .then((resp) => {
                 res.statusCode = 200;

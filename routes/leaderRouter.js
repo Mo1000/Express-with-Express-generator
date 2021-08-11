@@ -1,8 +1,10 @@
 const  express = require('express');
 const bodyParser = require('body-parser');
 const authenticate =require('../authenticate');
+const cors = require("./cors");
 const leaderRouter=express.Router()
 const Leaders = require('../models/leader');
+
 
 leaderRouter.use(bodyParser.json());
 leaderRouter.route('/')
@@ -16,8 +18,16 @@ leaderRouter.route('/')
         res.setHeader('Content-Type','text/plain');
         next();
     })*/
+    /**.options(cors.corsWithOptions,(req,res)=>{res.sendStatus(200)})
+     * Pour deja introduire le Cross Origin Ressource sharing (cors) et
+     definir quel address peut avoir acces a cette methode voir whiteListe
+     dans cors.js
+     */
+    .options(cors.corsWithOptions,(req,res)=>{
+        res.sendStatus(200)
+    })
 
-    .get((req,res,next) =>{
+    .get(cors.cors,(req,res,next) =>{
         Leaders.find({})
             .then((leaders) => {
                 res.statusCode = 200;
@@ -27,7 +37,7 @@ leaderRouter.route('/')
             .catch((err) => next(err));
     })
 
-    .post(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
+    .post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         Leaders.create(req.body)
             .then((leader) => {
                 console.log('Leader Created ', leader);
@@ -38,12 +48,12 @@ leaderRouter.route('/')
             .catch((err) => next(err));
     })
 
-    .put(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
+    .put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         res.statusCode =403;
         res.end('Put operation no supported on / leaders');
     })
 
-    .delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
+    .delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         Leaders.remove({})
             .then((resp) => {
                 res.statusCode = 200;
@@ -54,8 +64,12 @@ leaderRouter.route('/')
     });
 
 leaderRouter.route('/:leaderId')
+
+    .options(cors.corsWithOptions,(req,res)=>{
+        res.sendStatus(200)
+    })
     /**Concernant un leader specifique*/
-    .get((req,res,next) =>{
+    .get(cors.cors,(req,res,next) =>{
         Leaders.findById(req.params.leaderId)
             .then((leader) => {
                 res.statusCode = 200;
@@ -65,13 +79,13 @@ leaderRouter.route('/:leaderId')
             .catch((err) => next(err));
     })
 
-    .post(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
+    .post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         res.statusCode =403;
         res.end('Post operation no supported on /leader/' +
             req.params.leaderId);
     })
 
-    .put(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
+    .put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         /**{ new: true } pour que la methode findByIdAndUpdate retourne le leader sous
          forme de reponse json*/
         Leaders.findByIdAndUpdate(req.params.leaderId, {
@@ -85,7 +99,7 @@ leaderRouter.route('/:leaderId')
             .catch((err) => next(err));
     })
 
-    .delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
+    .delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next) =>{
         Leaders.findByIdAndRemove(req.params.leaderId)
             .then((resp) => {
                 res.statusCode = 200;

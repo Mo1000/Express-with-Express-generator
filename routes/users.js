@@ -2,31 +2,39 @@ var express = require('express');
 const bodyParser = require('body-parser');
 var  User = require('../models/user');
 var passport =require('passport');
-var  authenticate =require('../authenticate')
-
+var  authenticate =require('../authenticate');
+const  cors= require('./cors');
 
 var router = express.Router();
 router.use(bodyParser.json());
 
  /*GET users listing. */
-router.get('/',authenticate.verifyUser,function(req, res, next) {
-/**Seul ADMIN peut voir les utilisateurs**/
-    if (req.user.admin === true) {
+/**vu qu'on a utilser router.get directement ce qui est different de ce qui est utilser
+ * pour les autres routes plus besoin d'ecrire  ca
+
+.options(cors.corsWithOptions,(req,res)=>{
+    res.sendStatus(200)
+    on met juste cors.corsWithOptions dans le get en premier pour exiger de verifier
+    l'origine de la ressorce avant de continuer
+})*/
+router.get('/',cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,function(req, res, next) {
+/**Seul l'ADMIN peut voir les utilisateurs**/
+
         User.find({})
             .then((users)=>{
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
                 res.json(users);
             },(err)=>next(err))
-            .catch((err)=>next(err));
-    } else {
-        err = new Error('You are not authorized to perform this operation!');
-        err.status = 403;
-        return next(err);
-    }
+            .catch((err)=>{
+                res.statusCode = 500;
+                res.setHeader('Content-Type', 'application/json');
+                res.json({err:err});
+            });
+
 });
 
-router.post('/signup', (req, res, next) => {
+router.post('/signup', cors.corsWithOptions,(req, res, next) => {
     /**le Passport locol mongoose nous fournit de nouvelle methode pour
      * l'authentification*/
     /**register prend en parametre en 1er un nouvelle utillsateur ,le mdp,et la fonction de
@@ -63,7 +71,7 @@ router.post('/signup', (req, res, next) => {
 });
 
 
-router.post('/login',passport.authenticate('local'),
+router.post('/login',cors.corsWithOptions,passport.authenticate('local'),
     (req, res) => {
     /**Utilisation des cookies signées authentification express session  */
     //si l'utilisateur n'est pas encore authentifier ou connecté
