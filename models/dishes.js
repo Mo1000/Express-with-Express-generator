@@ -4,26 +4,8 @@ require('mongoose-currency').loadType(mongoose);/**Pour ajouter
  la devise a mongoose*/
 const Currency = mongoose.Types.Currency;
 
-var commentSchema = new Schema({
-    rating:  {
-        type: Number,
-        min: 1,
-        max: 5,
-        required: true
-    },
-    comment:  {
-        type: String,
-        required: true
-    },
-    author:  {
-        type: mongoose.Schema.Types.ObjectId/**Recoit une donnée
-         de type object id donc ce champ referencera un user*/,
-        ref:'User' /**Dit quel champ il reference */
-    }
-}, {
-    timestamps: true
-});
-const dishSchema = new Schema({
+
+var dishSchema = new Schema({
     name: {
         type: String,
         required: true,
@@ -53,10 +35,10 @@ const dishSchema = new Schema({
     featured: {
         type: Boolean,
         default:false
-    },
-    /**alors un plat peut avoir plusieurs commentaire stocker dans un tableau de
-     commentaire suivant le schema des commentaires */
-    comments:[commentSchema]
+    }/**,
+    alors un plat peut avoir plusieurs commentaire stocker dans un tableau de
+     commentaire suivant le schema des commentaires /
+    comments:[commentSchema]*/
 },{
     timestamps: true
 });

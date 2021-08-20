@@ -26,7 +26,7 @@ passport.deserializeUser(User.deserializeUser());
 
 exports.getToken = function(user) {
     return jwt.sign(user, config.secretKey,
-        {expiresIn: 3600});
+        {expiresIn: 10800});
 };
 /**Strategie basée sur le Json web token jwt*/
 var opts = {};

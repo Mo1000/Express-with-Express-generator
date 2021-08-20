@@ -4,7 +4,7 @@ module.exports = {
     'facebook': {
        /** clientId: 'Your Client App ID to facebook app',
         clientSecret: 'Your Client App Secret to facebook app'*/
-       clientId: '141516018056392',
-        clientSecret: '2d154fd3b85fad659b195156f513f9e8'
+       clientId: '508624823536952',
+        clientSecret: '3b66a597b38bd0886ffef2e6b4e4a8d4'
     }
 }

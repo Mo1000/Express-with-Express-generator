@@ -24,7 +24,7 @@ dishRouter.route('/')
 
 
     .get(cors.cors,(req,res,next) => {
-        Dishes.find({})
+        Dishes.find(req.query)
             .populate('comments.author')/**Dans le models de dishes nous avons dis au niveau des
          commentaire pour les auteurs il referencera les utilisateur
          .populate('comments.author') nous permet de garantie que le champ requis sera remplis*/
@@ -108,6 +108,8 @@ dishRouter.route('/:dishId')
 
 /***/
 /**Commentaire d'un plat specifque*/
+
+/**
 dishRouter.route('/:dishId/comments')
     .options(cors.corsWithOptions,(req,res)=>{
         res.sendStatus(200)
@@ -134,18 +136,18 @@ dishRouter.route('/:dishId/comments')
         /**Dans req body il ya le corps du message
          * authenticate.verifyUser  charge les info de l'utilsateur dans
          * req.user
-         * req.user._id; pour l'id*/
+         * req.user._id; pour l'id/
         Dishes.findById(req.params.dishId)
             .then((dish) => {
                 if (dish != null) {
                     req.body.author=req.user._id;/**Le champs comments.author se remplis autamatique
                      quand utilisateur se connecte avec son id  vu qu'on la deja authentifier
-                     au niveau de authenticate.verifyUser */
-                    dish.comments.push(req.body);
+                     au niveau de authenticate.verifyUser /
+                    dish.comments.push(req.body);  
                     dish.save()
                         .then((dish) => {
                             Dishes.findById(dish._id)/**Chercher le plat pour remplir la partir
-                             comments.author avec mongoose population */
+                             comments.author avec mongoose population /
                                 .populate('comments.author')
                                 .then((dish)=>{
                                     res.statusCode = 200;
@@ -189,13 +191,17 @@ dishRouter.route('/:dishId/comments')
             }, (err) => next(err))
             .catch((err) => next(err));
     });
+
+ */
 /**Router par rapport a un Commentaire specifique d'un plat specifque*/
+
+/**
 dishRouter.route('/:dishId/comments/:commentId')
     .options(cors.corsWithOptions,(req,res)=>{
         res.sendStatus(200)
     })
     .get(cors.cors,(req,res,next) => {
-        /**req.params.dishId est l"id du plat*/
+        /**req.params.dishId est l"id du plat/
             Dishes.findById(req.params.dishId)
                 .populate('comments.author')
                 .then((dish) => {
@@ -224,12 +230,12 @@ dishRouter.route('/:dishId/comments/:commentId')
             })
     .put(cors.corsWithOptions,authenticate.verifyUser,(req, res, next) => {
         /**{ new: true } pour que la methode findByIdAndUpdate retourne le plat sous
-         forme de reponse json*/
+         forme de reponse json/
         Dishes.findById(req.params.dishId)
             /**
              * comment authors etant de   type: mongoose.Schema.Types.ObjectId on peux utiliser populate pour recuperer
              les donnes voir https://mongoosejs.com/docs/populate.html
-             */
+             /
         .populate('comments.author')
             .then((dish) => {
                 console.log("USEr",req.user._id);
@@ -312,6 +318,6 @@ dishRouter.route('/:dishId/comments/:commentId')
             }, (err) => next(err))
             .catch((err) => next(err));
     });
-
+*/
 
 module.exports = dishRouter;
